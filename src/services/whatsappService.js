@@ -18,6 +18,23 @@ class WhatsAppService {
     };
     return await sendToWhatsApp(data);
   }
+
+  async sendInteractiveButtons(to, BodyText, buttons) {
+    const data = {
+      messaging_product: 'whatsapp',
+      to,
+      type: 'interactive',
+      interactive: {
+        type: 'button',
+        body: { text: BodyText },
+        action: {
+          buttons: buttons,
+        },
+      },
+    };
+
+    await sendToWhatsApp(data);
+  }
 }
 
 export default new WhatsAppService();

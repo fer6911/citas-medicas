@@ -3,3 +3,4 @@ crear la app en facebook
 pnm init -y
 npm install express axios dotenv
 npm install nodemon --save-dev
+npm install firebase
