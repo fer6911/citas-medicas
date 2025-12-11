@@ -47,7 +47,7 @@ class CreateAppointmentService {
 
     if (!appointments) return false;
 
-    const selectedIndex = message.text.body;
+    const selectedIndex = Number(message.text.body) - 1;
     if (isNaN(selectedIndex) || selectedIndex < 0 || selectedIndex >= appointments.length) {
       await whatsappService.sendMessage(userId, 'Número inválido. Intenta nuevamente.');
       return true;
