@@ -1,5 +1,6 @@
 import whatsappService from '../whatsappService.js';
 import firebaseService from '../firebaseServices/firebaseService.js';
+import sendEmail from '../sendEmail/sendEmail.js';
 
 class AppointmentMenu {
   async sendWelcomeMenu(to) {
@@ -74,6 +75,7 @@ class AppointmentMenu {
   }
 
   async handleSalir(userId) {
+     sendEmail.removeActiveUser(userId);
     const response = 'Gracias por usar nuestro servicio. ¡Hasta luego!';
     await whatsappService.sendMessage(userId, response);
   }

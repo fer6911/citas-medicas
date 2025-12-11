@@ -1,5 +1,6 @@
 import whatsappService from './whatsappService.js';
 import appointmentMenu from './appointmentMenu/appointmentMenu.js';
+import sendEmail from './sendEmail/sendEmail.js';
 
 class MessageHandler {
   constructor() {
@@ -35,8 +36,10 @@ class MessageHandler {
     const incomingMessage = message.text.body.toLowerCase().trim();
 
     if (this.isGreeting(incomingMessage)) {
+      // ✅ Registrar usuario como activo
+      sendEmail.registerActiveUser(userId, userId);
+      
       await this.sendWelcomeMessage(userId, senderInfo);
-      // Mostrar menú después del saludo
       await appointmentMenu.sendWelcomeMenu(userId);
     } else {
       const response = 'Digita una opción válida';
@@ -45,7 +48,6 @@ class MessageHandler {
   }
 
   async handleInteractiveMessage(userId, message) {
-    // Cuando el usuario presiona un botón
     const optionId = message.interactive?.button_reply?.id;
     if (optionId) {
       await appointmentMenu.handleMenuResponse(userId, optionId);
@@ -53,7 +55,7 @@ class MessageHandler {
   }
 
   isGreeting(message) {
-    const greetings = ["hola", "hello", "hi", "buenas tardes",
+    const greetings = ["hola","Hola", "hello", "hi", "buenas tardes",
       "buenos días", "buenos dias", "hola!", "buenas noches"
     ];
     return greetings.includes(message);

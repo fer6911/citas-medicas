@@ -2,20 +2,29 @@
   "name": "citas-medicas",
   "version": "1.0.0",
   "description": "��#\u0000 \u0000c\u0000i\u0000t\u0000a\u0000s\u0000-\u0000m\u0000e\u0000d\u0000i\u0000c\u0000a\u0000s\u0000\r\u0000 \u0000",
+  "keywords": [],
+  "homepage": "https://github.com/fer6911/citas-medicas#readme",
+  "bugs": {
+    "url": "https://github.com/fer6911/citas-medicas/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fer6911/citas-medicas.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon src/app.js"
   },
-  "type": "module",
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "axios": "^1.13.2",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
-    "firebase": "^12.5.0"
+    "firebase": "^12.5.0",
+    "firebase-admin": "^13.6.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
