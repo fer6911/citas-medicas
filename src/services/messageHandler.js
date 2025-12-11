@@ -18,6 +18,14 @@ class MessageHandler {
       if (message.type === "text") {
         const body = message.text.body.trim();
 
+
+        // Si el usuario está escribiendo el motivo de la consulta
+        if (createAppointmentService.waitingForInfo.has(userId)) {
+          const motivo = body;
+          await createAppointmentService.handleConsultationInfo(userId, motivo);
+          return;
+        }
+
         // Validar si es un número (solo número)
         if (/^\d+$/.test(body)) {
           const handled = await createAppointmentService.processUserSelection(userId, message);

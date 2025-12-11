@@ -106,8 +106,10 @@ class SendEmail {
         appointments.forEach((apt, index) => {
           message += `${index + 1}. ${apt.nombre_user || 'N/A'}\n`;
           message += `   Nombre del doctor: ${apt.nombre_doctor || 'N/A'}\n`;
+          message += `   Especialidad: ${apt.especialidad || 'N/A'}\n`;
           message += `   Fecha Cita: ${apt.fecha_agendamiento || 'N/A'}\n`;
           message += `   Hora: ${apt.hora || 'N/A'}\n\n`;
+          message += `   📝Motivo de tu consulta:\n   ${apt.informacion_consulta || 'N/A'}`;
         });
       }
 

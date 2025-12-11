@@ -7,6 +7,7 @@ class CreateAppointmentService {
 
   constructor() {
     this.userSelections = new Map();
+    this.waitingForInfo = new Map();
   }
 
   async showAvailableAppointments(userId) {
@@ -43,8 +44,8 @@ class CreateAppointmentService {
       await appointmentMenu.sendWelcomeMenu(userId);
       return true;
     }
-    const appointments = this.userSelections.get(userId);
 
+    const appointments = this.userSelections.get(userId);
     if (!appointments) return false;
 
     const selectedIndex = Number(message.text.body) - 1;
@@ -55,39 +56,58 @@ class CreateAppointmentService {
 
     const selectedAppointment = appointments[selectedIndex];
 
-    // const userData = await firebaseService.getUserByPhone(userId);
+    // Guardamos solo la cita seleccionada
+    this.waitingForInfo.set(userId, selectedAppointment);
+
+    // Pedimos motivo
+    await whatsappService.sendMessage(
+      userId,
+      "📝 Por favor escribe el *motivo de tu consulta*:"
+    );
+
+    return true;  // <-- IMPORTANTE: DETENER EL FLUJO AQUÍ
+  }
+
+  async handleConsultationInfo(userId, messageText) {
+    const selectedAppointment = this.waitingForInfo.get(userId);
     const userData = await userService.getUser(userId);
 
-    if (!userData) {
-      await whatsappService.sendMessage(userId, 'Usuario no registrado.');
-      return true;
+    if (!selectedAppointment || !userData) {
+      return false;
     }
 
+    // Guardar cita en Firebase con motivo incluido
     await firebaseService.saveScheduledAppointment({
-      id_usuario: userId, // FIX
+      id_usuario: userId,
       nombre_user: userData.nombre,
       phone: userId,
       nombre_doctor: selectedAppointment.nombre_doctor,
       id_cita: selectedAppointment.id,
       fecha_agendamiento: selectedAppointment.fecha,
       hora: selectedAppointment.hora,
+      informacion_consulta: messageText,   // ← NUEVO CAMPO
       estado: true,
+      especialidad: selectedAppointment.especialidad,
       creado_en: new Date().toISOString()
     });
 
+    // Cambiar cita a no disponible
     await firebaseService.updateAppointmentStatus(
       selectedAppointment.id,
       false
     );
 
+    // Confirmación al usuario
     await whatsappService.sendMessage(
       userId,
-      `✅ Tu cita con *${selectedAppointment.nombre_doctor}* ha sido agendada para el día *${selectedAppointment.fecha}* a las *${selectedAppointment.hora}*.`
+      `✅ Tu cita con *${selectedAppointment.nombre_doctor}* ha sido agendada para el día *${selectedAppointment.fecha}* a las *${selectedAppointment.hora}*.\n📝 *Motivo:* ${messageText}`
     );
 
+    // Limpiar estado
     this.userSelections.delete(userId);
+    this.waitingForInfo.delete(userId);
 
-     await whatsappService.sendBackButton(userId);
+    await whatsappService.sendBackButton(userId);
 
     return true;
   }
