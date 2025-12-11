@@ -1,3 +1,4 @@
+import createAppointmentService from '../createAppointment/createAppointmentService.js';
 import whatsappService from '../whatsappService.js';
 import firebaseService from '../firebaseServices/firebaseService.js';
 import sendEmail from '../sendEmail/sendEmail.js';
@@ -24,7 +25,7 @@ class AppointmentMenu {
   }
 
   async handleMenuResponse(userId, optionId) {
-    switch(optionId) {
+    switch (optionId) {
       case 'option_1':
         await this.handleConsultarCitas(userId);
         break;
@@ -34,17 +35,20 @@ class AppointmentMenu {
       case 'option_3':
         await this.handleSalir(userId);
         break;
+      case 'menu_anterior':
+        await this.sendWelcomeMenu(userId);
+        break;
       default:
         const response = 'Opción no válida';
         await whatsappService.sendMessage(userId, response);
     }
   }
 
-   async handleConsultarCitas(userId) {
+  async handleConsultarCitas(userId) {
     try {
       // Obtener citas disponibles de Firebase
       const appointments = await firebaseService.getAvailableAppointments();
-      
+
       if (appointments.length === 0) {
         const response = 'No hay citas disponibles en este momento. Intenta más tarde.';
         await whatsappService.sendMessage(userId, response);
@@ -53,15 +57,26 @@ class AppointmentMenu {
 
       // Formatear mensaje con citas
       let message = '📅 *Citas Disponibles:*\n\n';
-      
+
       appointments.forEach((apt, index) => {
-        message += `${index + 1}. ${apt.nombre_doctor}\n`;
+        message += `${index + 1} Doctor(a). ${apt.nombre_doctor}\n`;
         message += `   Especialidad: ${apt.especialidad || 'N/A'}\n`;
         message += `   Fecha: ${apt.fecha}\n`;
         message += `   Hora: ${apt.hora}\n\n`;
       });
 
       await whatsappService.sendMessage(userId, message);
+      await whatsappService.sendBackButton(userId);
+      // await whatsappService.sendInteractiveButtons(
+      //   userId,
+      //   "Menu Anterior",
+      //   [
+      //     {
+      //       type: "reply",
+      //       reply: { id: "menu_anterior", title: "Ir" }
+      //     }
+      //   ]
+      // );
     } catch (error) {
       console.error('Error consultando citas:', error);
       await whatsappService.sendMessage(userId, 'Error al consultar citas. Intenta de nuevo.');
@@ -70,12 +85,13 @@ class AppointmentMenu {
 
   async handleAgendarCita(userId) {
     const response = 'Iniciando agendamiento de cita...';
-    await whatsappService.sendMessage(userId, response);
+    // await whatsappService.sendMessage(userId, response);
     // Aquí irá la lógica para agendar
+    await createAppointmentService.showAvailableAppointments(userId);
   }
 
   async handleSalir(userId) {
-     sendEmail.removeActiveUser(userId);
+    sendEmail.removeActiveUser(userId);
     const response = 'Gracias por usar nuestro servicio. ¡Hasta luego!';
     await whatsappService.sendMessage(userId, response);
   }

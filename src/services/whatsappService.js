@@ -35,6 +35,22 @@ class WhatsAppService {
 
     await sendToWhatsApp(data);
   }
+
+  async sendBackButton(userId) {
+    const button = [
+      {
+        type: "reply",
+        reply: {
+          id: "menu_anterior",
+          title: "Ir"
+        }
+      }
+    ];
+
+    const body = "Menu Anterior";
+
+    await this.sendInteractiveButtons(userId, body, button);
+  }
 }
 
 export default new WhatsAppService();

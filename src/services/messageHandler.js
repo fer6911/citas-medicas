@@ -1,6 +1,8 @@
 import whatsappService from './whatsappService.js';
 import appointmentMenu from './appointmentMenu/appointmentMenu.js';
 import sendEmail from './sendEmail/sendEmail.js';
+import createAppointmentService from '../services/createAppointment/createAppointmentService.js';
+import userService from './firebaseServices/userService.js'
 
 class MessageHandler {
   constructor() {
@@ -9,13 +11,19 @@ class MessageHandler {
 
   async handleIncomingMessage(message, senderInfo) {
     try {
-      const messageKey = `${message.from}_${message.id || message.timestamp}`;
+      // Declarar userId primero
+      const userId = message.from;
+
+      // Validamos que estamos agendando citas
+      const handled = await createAppointmentService.processUserSelection(userId, message);
+      if (handled) return;
+
+      // Evitar procesar el mismo mensaje 2 veces
+      const messageKey = `${userId}_${message.id || message.timestamp}`;
       if (this.processedMessages.has(messageKey)) {
         return;
       }
       this.processedMessages.add(messageKey);
-
-      const userId = message.from;
 
       // Marcar como leído
       await whatsappService.markAsRead(userId, message.id);
@@ -36,9 +44,10 @@ class MessageHandler {
     const incomingMessage = message.text.body.toLowerCase().trim();
 
     if (this.isGreeting(incomingMessage)) {
-      // ✅ Registrar usuario como activo
+      // Registrar usuario como activo
       sendEmail.registerActiveUser(userId, userId);
-      
+      await userService.registerUser(userId, senderInfo.profile?.name);
+
       await this.sendWelcomeMessage(userId, senderInfo);
       await appointmentMenu.sendWelcomeMenu(userId);
     } else {
@@ -55,8 +64,10 @@ class MessageHandler {
   }
 
   isGreeting(message) {
-    const greetings = ["hola","Hola", "hello", "hi", "buenas tardes",
-      "buenos días", "buenos dias", "hola!", "buenas noches"
+    const greetings = [
+      "hola", "hello", "hi",
+      "buenas tardes", "buenos días", "buenos dias",
+      "hola!", "buenas noches"
     ];
     return greetings.includes(message);
   }

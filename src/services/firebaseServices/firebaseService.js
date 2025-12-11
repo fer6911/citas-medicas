@@ -9,8 +9,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const credentialsPath = path.join(__dirname, '../../credentials/credentials.json');
 
 if (!fs.existsSync(credentialsPath)) {
-  console.error('❌ Archivo de credenciales no encontrado en:', credentialsPath);
-  console.error('Descárgalo desde Firebase Console → Configuración → Cuentas de servicio');
+  console.error('❌ Archivo de credenciales no encontrado:', credentialsPath);
   process.exit(1);
 }
 
@@ -24,139 +23,64 @@ admin.initializeApp({
 const db = admin.firestore();
 
 class FirebaseService {
-  // Obtener todas las citas DISPONIBLES
+
+  // Obtener citas disponibles
   async getAvailableAppointments() {
     try {
       const snapshot = await db.collection('citas_disponibles')
         .where('estado', '==', true)
         .get();
-      
+
       const appointments = [];
       snapshot.forEach(doc => {
-        appointments.push({
-          id: doc.id,
-          ...doc.data()
-        });
+        appointments.push({ id: doc.id, ...doc.data() });
       });
-      
-      console.log('✅ Citas disponibles obtenidas:', appointments.length);
+
       return appointments;
     } catch (error) {
-      console.error('❌ Error obteniendo citas disponibles:', error.message);
+      console.error('❌ Error obteniendo citas disponibles:', error);
       return [];
     }
   }
 
-  // Obtener citas por especialidad
-  async getAppointmentsBySpecialty(specialty) {
+  // Obtener usuario por teléfono
+  async getUserByPhone(phone) {
     try {
-      const snapshot = await db.collection('citas_disponibles')
-        .where('estado', '==', true)
-        .where('especialidad', '==', specialty)
+      const snapshot = await db.collection('usuarios')
+        .where('phone', '==', phone)
         .get();
-      
-      const appointments = [];
-      snapshot.forEach(doc => {
-        appointments.push({
-          id: doc.id,
-          ...doc.data()
-        });
-      });
-      
-      return appointments;
-    } catch (error) {
-      console.error('Error obteniendo citas por especialidad:', error.message);
-      return [];
+
+      if (snapshot.empty) return null;
+
+      let user;
+      snapshot.forEach(doc => (user = { id: doc.id, ...doc.data() }));
+
+      return user;
+    } catch (e) {
+      console.error('❌ Error obteniendo usuario:', e);
+      return null;
     }
   }
 
-  // Obtener citas por doctor
-  async getAppointmentsByDoctor(doctorName) {
+  // Guardar cita agendada
+  async saveScheduledAppointment(data) {
     try {
-      const snapshot = await db.collection('citas_disponibles')
-        .where('estado', '==', true)
-        .where('nombre_doctor', '==', doctorName)
-        .get();
-      
-      const appointments = [];
-      snapshot.forEach(doc => {
-        appointments.push({
-          id: doc.id,
-          ...doc.data()
-        });
-      });
-      
-      return appointments;
-    } catch (error) {
-      console.error('Error obteniendo citas por doctor:', error.message);
-      return [];
+      return await db.collection('citas_agendadas').add(data);
+    } catch (e) {
+      console.error('❌ Error guardando cita agendada:', e);
+      return null;
     }
   }
 
-  // Obtener citas por fecha
-  async getAppointmentsByDate(date) {
-    try {
-      const snapshot = await db.collection('citas_disponibles')
-        .where('estado', '==', true)
-        .where('fecha', '==', date)
-        .get();
-      
-      const appointments = [];
-      snapshot.forEach(doc => {
-        appointments.push({
-          id: doc.id,
-          ...doc.data()
-        });
-      });
-      
-      return appointments;
-    } catch (error) {
-      console.error('Error obteniendo citas por fecha:', error.message);
-      return [];
-    }
-  }
+  //actualizamos el campo esto cita a false despues de guardar un cita medica 
+  async updateAppointmentStatus(appointmentId, newStatus) {
+    const appointmentRef = admin.firestore()
+      .collection('citas_disponibles')
+      .doc(appointmentId);
 
-  // Obtener todas las citas AGENDADAS
-  async getScheduledAppointments() {
-    try {
-      const snapshot = await db.collection('citas_agendadas').get();
-      
-      const appointments = [];
-      snapshot.forEach(doc => {
-        appointments.push({
-          id: doc.id,
-          ...doc.data()
-        });
-      });
-      
-      console.log('✅ Citas agendadas obtenidas:', appointments.length);
-      return appointments;
-    } catch (error) {
-      console.error('❌ Error obteniendo citas agendadas:', error.message);
-      return [];
-    }
-  }
-
-  // Obtener citas agendadas por usuario
-  async getScheduledAppointmentsByUser(userId) {
-    try {
-      const snapshot = await db.collection('citas_agendadas')
-        .where('id_usuario', '==', userId)
-        .get();
-      
-      const appointments = [];
-      snapshot.forEach(doc => {
-        appointments.push({
-          id: doc.id,
-          ...doc.data()
-        });
-      });
-      
-      return appointments;
-    } catch (error) {
-      console.error('Error obteniendo citas por usuario:', error.message);
-      return [];
-    }
+    await appointmentRef.update({
+      estado: newStatus
+    });
   }
 }
 

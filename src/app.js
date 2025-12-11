@@ -18,7 +18,7 @@ app.listen(config.PORT, () => {
   console.log(`Server is listening on port: ${config.PORT}`);
   
   // ✅ Iniciar polling - el contador empieza automáticamente cada 15 segundos
-  // sendEmail.startPolling();
+  sendEmail.startPolling();
 });
 
 process.on('SIGTERM', () => {
