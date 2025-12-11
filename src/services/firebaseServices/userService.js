@@ -3,6 +3,7 @@ import admin from 'firebase-admin';
 const db = admin.firestore();
 
 class UserService {
+
   async registerUser(userId, nombre) {
     try {
       await db.collection("usuarios").doc(userId).set({
@@ -22,17 +23,18 @@ class UserService {
 
   async getUser(userId) {
     try {
-      const docSnap = await db.collection("usuarios").doc(userId).get();
+      const snap = await db.collection("usuarios").doc(userId).get();
 
-      if (!docSnap.exists) return null;
+      if (!snap.exists) return null;
 
-      return docSnap.data();
+      return snap.data();
 
     } catch (error) {
       console.error("Error obteniendo usuario:", error);
       return null;
     }
   }
+
 }
 
 export default new UserService();

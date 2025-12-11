@@ -15,8 +15,15 @@ class MessageHandler {
       const userId = message.from;
 
       // Validamos que estamos agendando citas
-      const handled = await createAppointmentService.processUserSelection(userId, message);
-      if (handled) return;
+      if (message.type === "text") {
+        const body = message.text.body.trim();
+
+        // Validar si es un número (solo número)
+        if (/^\d+$/.test(body)) {
+          const handled = await createAppointmentService.processUserSelection(userId, message);
+          if (handled) return;
+        }
+      }
 
       // Evitar procesar el mismo mensaje 2 veces
       const messageKey = `${userId}_${message.id || message.timestamp}`;
